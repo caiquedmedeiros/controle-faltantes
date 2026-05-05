@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Controle de Faltantes</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: #e2e8f0;
+    margin: 0;
+}
+
+/* HEADER */
+.header {
+    background: #020617;
+    padding: 20px;
+    font-size: 22px;
+    font-weight: bold;
+    color: #38bdf8;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+/* CONTAINER */
+.container {
+    padding: 25px;
+}
+
+/* FORM */
+.form-box {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+
+/* GRID */
+.grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* INPUT */
+input, select {
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: #334155;
+    color: white;
+    flex: 1;
+}
+
+/* BUTTON */
+button {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+    font-weight: bold;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+.salvar { background: #22c55e; color: white; }
+.chegou { background: #3b82f6; color: white; }
+.alterar { background: #f59e0b; color: white; }
+.remover { background: #ef4444; color: white; }
+
+/* BUSCA */
+#busca {
+    width: 300px;
+    margin-bottom: 20px;
+}
+
+/* CARD */
+.card {
+    background: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+/* HEADER DO PEDIDO */
+.pedido-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* ITEM */
+.item {
+    background: #334155;
+    padding: 12px;
+    margin-top: 10px;
+    border-radius: 8px;
+}
+
+/* STATUS */
+.atrasado { border-left: 5px solid #ef4444; }
+.hoje { border-left: 5px solid #f59e0b; }
+.ok { border-left: 5px solid #22c55e; }
+
+/* BADGES */
+.badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.badge-ok { background: #22c55e; }
+.badge-pendente { background: #f59e0b; }
+</style>
+
+</head>
+
+<body>
+
+<div class="header">📦 Controle de Faltantes</div>
+
+<div class="container">
+
+<div class="form-box">
+
+<div class="grid">
+    <input id="numero" placeholder="Pedido">
+    <input id="cliente" placeholder="Cliente">
+</div>
+
+<h3>Itens</h3>
+<div id="itens"></div>
+
+<button onclick="addItem()">+ Adicionar Item</button>
+<button class="salvar" onclick="criar()">Salvar</button>
+
+</div>
+
+<input id="busca" placeholder="Buscar pedido..." onkeyup="carregar()">
+
+<div id="lista"></div>
+
+</div>
+
+<script>
+
+// ADD ITEM
+function addItem() {
+    const div = document.createElement("div");
+    div.className = "item";
+
+    div.innerHTML = `
+        <div class="grid">
+            <input placeholder="Produto">
+            <input placeholder="Código">
+            <input type="date">
+            <select>
+                <option value="">Prateleira</option>
+                <option>A</option><option>B</option><option>C</option>
+                <option>D</option><option>E</option><option>F</option>
+                <option>G</option><option>H</option><option>I</option>
+                <option>J</option><option>K</option><option>L</option>
+                <option>M</option>
+            </select>
+            <button class="remover" onclick="this.parentElement.parentElement.remove()">X</button>
+        </div>
+    `;
+
+    document.getElementById("itens").appendChild(div);
+}
+
+addItem();
+
+// LOAD
+async function carregar() {
+    const res = await fetch("/pedidos");
+    const dados = await res.json();
+
+    const hoje = new Date();
+    const busca = document.getElementById("busca").value.toLowerCase();
+
+    let pedidos = {};
+    let alerta = "";
+
+    dados.forEach(i => {
+        if (!pedidos[i.numero]) {
+            pedidos[i.numero] = { cliente: i.cliente, itens: [] };
+        }
+        pedidos[i.numero].itens.push(i);
+    });
+
+    let html = "";
+
+    for (let numero in pedidos) {
+
+        if (busca && !numero.toLowerCase().includes(busca)) continue;
+
+        const pedido = pedidos[numero];
+
+        let todosChegaram = pedido.itens.every(i => i.status === "chegou");
+
+        html += `
+        <div class="card">
+            <div class="pedido-header">
+                <h3>Pedido ${numero}</h3>
+                <span class="badge ${todosChegaram ? 'badge-ok' : 'badge-pendente'}">
+                    ${todosChegaram ? 'PRONTO' : 'PENDENTE'}
+                </span>
+            </div>
+            <b>Cliente:</b> ${pedido.cliente}
+            <hr>
+        `;
+
+        pedido.itens.forEach(i => {
+            let classe = "";
+            let status = "";
+
+            const prev = i.previsao ? new Date(i.previsao) : null;
+
+            if (i.status === "chegou") {
+                status = "✔ Chegou";
+                classe = "ok";
+            } else if (prev && prev < hoje) {
+                status = "🔴 Atrasado";
+                classe = "atrasado";
+                alerta += `Pedido ${numero} atrasado\n`;
+            } else if (prev && prev.toDateString() === hoje.toDateString()) {
+                status = "⚠ Hoje";
+                classe = "hoje";
+                alerta += `Pedido ${numero} chega hoje\n`;
+            } else {
+                status = "⏳ Aguardando";
+            }
+
+            html += `
+            <div class="item ${classe}">
+                <b>${i.produto}</b> | Código: ${i.codigo} | Local: ${i.localizacao || "-"} <br>
+                Previsão: ${i.previsao || "-"} | Status: ${status}<br><br>
+
+                <button class="chegou" onclick="chegou(${i.id})">Chegou</button>
+                <button class="alterar" onclick="alterar(${i.id})">Alterar</button>
+            </div>
+            `;
+        });
+
+        html += `</div>`;
+    }
+
+    document.getElementById("lista").innerHTML = html;
+
+    if (alerta) alert(alerta);
+}
+
+// CREATE
+async function criar() {
+    const numero = document.getElementById("numero").value;
+    const cliente = document.getElementById("cliente").value;
+
+    const divs = document.querySelectorAll("#itens .item");
+
+    let itens = [];
+
+    divs.forEach(div => {
+        const inputs = div.querySelectorAll("input");
+        const select = div.querySelector("select");
+
+        itens.push({
+            produto: inputs[0].value,
+            codigo: inputs[1].value,
+            status: inputs[2].value ? "faltante" : "chegou",
+            previsao: inputs[2].value || null,
+            localizacao: select.value
+        });
+    });
+
+    await fetch("/pedido", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ numero, cliente, itens })
+    });
+
+    carregar();
+}
+
+// UPDATE
+async function chegou(id) {
+    await fetch("/atualizar", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ id, status: "chegou", previsao: null })
+    });
+    carregar();
+}
+
+async function alterar(id) {
+    const nova = prompt("Nova data YYYY-MM-DD:");
+    if (!nova) return;
+
+    await fetch("/atualizar", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ id, status: "faltante", previsao: nova })
+    });
+    carregar();
+}
+
+carregar();
+</script>
+
+</body>
+</html>
