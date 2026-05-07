@@ -134,14 +134,21 @@ button:hover {
 </div>
 
 <h3>Itens</h3>
+
 <div id="itens"></div>
 
 <button onclick="addItem()">+ Adicionar Item</button>
-<button class="salvar" onclick="criar()">Salvar</button>
+
+<button class="salvar" onclick="criar()">
+    Salvar
+</button>
 
 </div>
 
-<input id="busca" placeholder="Buscar pedido..." onkeyup="carregar()">
+<input
+    id="busca"
+    placeholder="Buscar pedido..."
+    onkeyup="carregar()">
 
 <div id="lista"></div>
 
@@ -151,46 +158,85 @@ button:hover {
 
 // ADD ITEM
 function addItem() {
+
     const div = document.createElement("div");
+
     div.className = "item";
 
     div.innerHTML = `
         <div class="grid">
+
             <input placeholder="Produto">
+
             <input placeholder="Código">
+
             <input type="date">
+
             <select>
                 <option value="">Prateleira</option>
-                <option>A</option><option>B</option><option>C</option>
-                <option>D</option><option>E</option><option>F</option>
-                <option>G</option><option>H</option><option>I</option>
-                <option>J</option><option>K</option><option>L</option>
+
+                <option>A</option>
+                <option>B</option>
+                <option>C</option>
+                <option>D</option>
+                <option>E</option>
+                <option>F</option>
+                <option>G</option>
+                <option>H</option>
+                <option>I</option>
+                <option>J</option>
+                <option>K</option>
+                <option>L</option>
                 <option>M</option>
             </select>
-            <button class="remover" onclick="this.parentElement.parentElement.remove()">X</button>
+
+            <button
+                class="remover"
+                onclick="this.parentElement.parentElement.remove()">
+
+                X
+
+            </button>
+
         </div>
     `;
 
-    document.getElementById("itens").appendChild(div);
+    document
+        .getElementById("itens")
+        .appendChild(div);
 }
 
 addItem();
 
 // LOAD
 async function carregar() {
+
     const res = await fetch("/pedidos");
+
     const dados = await res.json();
 
     const hoje = new Date();
-    const busca = document.getElementById("busca").value.toLowerCase();
+
+    const busca =
+        document
+            .getElementById("busca")
+            .value
+            .toLowerCase();
 
     let pedidos = {};
+
     let alerta = "";
 
     dados.forEach(i => {
+
         if (!pedidos[i.numero]) {
-            pedidos[i.numero] = { cliente: i.cliente, itens: [] };
+
+            pedidos[i.numero] = {
+                cliente: i.cliente,
+                itens: []
+            };
         }
+
         pedidos[i.numero].itens.push(i);
     });
 
@@ -198,52 +244,130 @@ async function carregar() {
 
     for (let numero in pedidos) {
 
-        if (busca && !numero.toLowerCase().includes(busca)) continue;
+        if (
+            busca &&
+            !numero.toLowerCase().includes(busca)
+        ) continue;
 
         const pedido = pedidos[numero];
 
-        let todosChegaram = pedido.itens.every(i => i.status === "chegou");
+        let todosChegaram =
+            pedido.itens.every(
+                i => i.status === "chegou"
+            );
 
         html += `
         <div class="card">
+
             <div class="pedido-header">
+
                 <h3>Pedido ${numero}</h3>
-                <span class="badge ${todosChegaram ? 'badge-ok' : 'badge-pendente'}">
-                    ${todosChegaram ? 'PRONTO' : 'PENDENTE'}
+
+                <span class="badge ${
+                    todosChegaram
+                        ? 'badge-ok'
+                        : 'badge-pendente'
+                }">
+
+                    ${
+                        todosChegaram
+                            ? 'PRONTO'
+                            : 'PENDENTE'
+                    }
+
                 </span>
+
             </div>
+
             <b>Cliente:</b> ${pedido.cliente}
+
             <hr>
         `;
 
         pedido.itens.forEach(i => {
+
             let classe = "";
+
             let status = "";
 
-            const prev = i.previsao ? new Date(i.previsao) : null;
+            const prev =
+                i.previsao
+                    ? new Date(i.previsao)
+                    : null;
 
             if (i.status === "chegou") {
+
                 status = "✔ Chegou";
+
                 classe = "ok";
+
             } else if (prev && prev < hoje) {
+
                 status = "🔴 Atrasado";
+
                 classe = "atrasado";
-                alerta += `Pedido ${numero} atrasado\n`;
-            } else if (prev && prev.toDateString() === hoje.toDateString()) {
+
+                alerta +=
+                    `Pedido ${numero} atrasado\n`;
+
+            } else if (
+                prev &&
+                prev.toDateString() === hoje.toDateString()
+            ) {
+
                 status = "⚠ Hoje";
+
                 classe = "hoje";
-                alerta += `Pedido ${numero} chega hoje\n`;
+
+                alerta +=
+                    `Pedido ${numero} chega hoje\n`;
+
             } else {
+
                 status = "⏳ Aguardando";
             }
 
             html += `
             <div class="item ${classe}">
-                <b>${i.produto}</b> | Código: ${i.codigo} | Local: ${i.localizacao || "-"} <br>
-                Previsão: ${i.previsao || "-"} | Status: ${status}<br><br>
 
-                <button class="chegou" onclick="chegou(${i.id})">Chegou</button>
-                <button class="alterar" onclick="alterar(${i.id})">Alterar</button>
+                <b>${i.produto}</b>
+
+                | Código: ${i.codigo}
+
+                | Local: ${i.localizacao || "-"}
+
+                <br>
+
+                Previsão: ${i.previsao || "-"}
+
+                | Status: ${status}
+
+                <br><br>
+
+                <button
+                    class="chegou"
+                    onclick="chegou(${i.id})">
+
+                    Chegou
+
+                </button>
+
+                <button
+                    class="alterar"
+                    onclick="alterar(${i.id})">
+
+                    Alterar
+
+                </button>
+
+                <button
+                    class="remover"
+                    onclick="apagarPedido(${i.pedido_id})">
+
+                    🗑️ Apagar Pedido
+
+                </button>
+
             </div>
             `;
         });
@@ -251,37 +375,73 @@ async function carregar() {
         html += `</div>`;
     }
 
-    document.getElementById("lista").innerHTML = html;
+    document
+        .getElementById("lista")
+        .innerHTML = html;
 
-    if (alerta) alert(alerta);
+    if (alerta) {
+        alert(alerta);
+    }
 }
 
 // CREATE
 async function criar() {
-    const numero = document.getElementById("numero").value;
-    const cliente = document.getElementById("cliente").value;
 
-    const divs = document.querySelectorAll("#itens .item");
+    const numero =
+        document
+            .getElementById("numero")
+            .value;
+
+    const cliente =
+        document
+            .getElementById("cliente")
+            .value;
+
+    const divs =
+        document.querySelectorAll("#itens .item");
 
     let itens = [];
 
     divs.forEach(div => {
-        const inputs = div.querySelectorAll("input");
-        const select = div.querySelector("select");
+
+        const inputs =
+            div.querySelectorAll("input");
+
+        const select =
+            div.querySelector("select");
 
         itens.push({
+
             produto: inputs[0].value,
+
             codigo: inputs[1].value,
-            status: inputs[2].value ? "faltante" : "chegou",
-            previsao: inputs[2].value || null,
-            localizacao: select.value
+
+            status:
+                inputs[2].value
+                    ? "faltante"
+                    : "chegou",
+
+            previsao:
+                inputs[2].value || null,
+
+            localizacao:
+                select.value
         });
     });
 
     await fetch("/pedido", {
+
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ numero, cliente, itens })
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            numero,
+            cliente,
+            itens
+        })
     });
 
     carregar();
@@ -289,27 +449,69 @@ async function criar() {
 
 // UPDATE
 async function chegou(id) {
+
     await fetch("/atualizar", {
+
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ id, status: "chegou", previsao: null })
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            id,
+            status: "chegou",
+            previsao: null
+        })
     });
+
     carregar();
 }
 
 async function alterar(id) {
-    const nova = prompt("Nova data YYYY-MM-DD:");
+
+    const nova =
+        prompt("Nova data YYYY-MM-DD:");
+
     if (!nova) return;
 
     await fetch("/atualizar", {
+
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ id, status: "faltante", previsao: nova })
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            id,
+            status: "faltante",
+            previsao: nova
+        })
     });
+
+    carregar();
+}
+
+// APAGAR PEDIDO
+async function apagarPedido(id) {
+
+    const confirmar =
+        confirm("Deseja apagar esse pedido?");
+
+    if (!confirmar) return;
+
+    await fetch(`/pedido/${id}`, {
+        method: "DELETE"
+    });
+
+    alert("Pedido apagado!");
+
     carregar();
 }
 
 carregar();
+
 </script>
 
 </body>
