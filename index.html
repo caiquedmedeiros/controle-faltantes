@@ -369,6 +369,49 @@ button:hover{
     margin-top:10px;
 }
 
+
+    /* CAMPO DATA */
+input[type="date"]{
+
+    color:white;
+
+    position:relative;
+
+    padding-right:15px;
+}
+
+/* ÍCONE CALENDÁRIO */
+input[type="date"]::-webkit-calendar-picker-indicator{
+
+    filter:invert(1);
+
+    cursor:pointer;
+
+    opacity:0.8;
+}
+
+/* TEXTO */
+input[type="date"]::-webkit-datetime-edit{
+
+    color:white;
+}
+
+/* PLACEHOLDER */
+input[type="date"]:before{
+
+    content:"Selecionar data";
+
+    color:#cbd5e1;
+
+    position:absolute;
+
+    left:18px;
+}
+
+input[type="date"]:valid:before{
+
+    display:none;
+}
 </style>
 
 </head>
