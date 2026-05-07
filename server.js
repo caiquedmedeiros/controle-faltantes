@@ -51,6 +51,7 @@ app.post("/pedido", (req, res) => {
 
             if (err) {
                 console.log(err);
+
                 return res.status(500).json({
                     erro: "Erro ao criar pedido"
                 });
@@ -71,8 +72,8 @@ app.post("/pedido", (req, res) => {
                         : null;
 
                 db.query(
-                    `INSERT INTO itens 
-                    (pedido_id, produto, codigo, status, previsao, localizacao) 
+                    `INSERT INTO itens
+                    (pedido_id, produto, codigo, status, previsao, localizacao)
                     VALUES (?, ?, ?, ?, ?, ?)`,
                     [
                         pedidoId,
@@ -96,7 +97,8 @@ app.post("/pedido", (req, res) => {
 app.get("/pedidos", (req, res) => {
 
     db.query(`
-        SELECT 
+        SELECT
+            p.id as pedido_id,
             p.numero,
             p.cliente,
             i.*
@@ -143,6 +145,46 @@ app.post("/atualizar", (req, res) => {
             }
 
             res.json({ ok: true });
+        }
+    );
+});
+
+// ==========================
+// APAGAR PEDIDO
+// ==========================
+app.delete("/pedido/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    db.query(
+        "DELETE FROM itens WHERE pedido_id = ?",
+        [id],
+        (err) => {
+
+            if (err) {
+                console.log(err);
+
+                return res.status(500).json({
+                    erro: "Erro ao apagar itens"
+                });
+            }
+
+            db.query(
+                "DELETE FROM pedidos WHERE id = ?",
+                [id],
+                (err2) => {
+
+                    if (err2) {
+                        console.log(err2);
+
+                        return res.status(500).json({
+                            erro: "Erro ao apagar pedido"
+                        });
+                    }
+
+                    res.json({ ok: true });
+                }
+            );
         }
     );
 });
