@@ -118,6 +118,56 @@ h3{
     gap:15px;
 }
 
+/* FORMULÁRIO MODERNO */
+.modern-grid{
+
+    display:grid;
+
+    grid-template-columns:
+    2fr 2fr 1.5fr 1fr auto;
+
+    gap:15px;
+
+    align-items:center;
+}
+
+.modern-grid input,
+.modern-grid select{
+
+    height:60px;
+
+    font-size:16px;
+
+    background:#475569;
+
+    border-radius:16px;
+
+    padding:0 18px;
+
+    border:2px solid transparent;
+
+    transition:0.2s;
+}
+
+.modern-grid input:focus,
+.modern-grid select:focus{
+
+    border:2px solid #38bdf8;
+
+    background:#52657e;
+}
+
+.modern-grid button{
+
+    height:60px;
+
+    width:60px;
+
+    border-radius:16px;
+
+    font-size:18px;
+}
+
 /* INPUT */
 input,
 select{
@@ -192,6 +242,20 @@ button:hover{
     color:white;
 }
 
+/* BOTÕES PRINCIPAIS */
+.form-box > button{
+
+    margin-top:20px;
+
+    margin-right:10px;
+
+    height:50px;
+
+    padding:0 22px;
+
+    border-radius:14px;
+}
+
 /* BUSCA */
 #busca{
 
@@ -247,6 +311,21 @@ button:hover{
     margin-top:15px;
 
     line-height:1.8;
+}
+
+/* ÁREA DOS ITENS */
+#itens .item{
+
+    background:#263449;
+
+    border-radius:20px;
+
+    padding:20px;
+
+    margin-top:20px;
+
+    border:
+    1px solid rgba(255,255,255,0.04);
 }
 
 /* STATUS */
@@ -313,7 +392,7 @@ button:hover{
     <input id="cliente" placeholder="Cliente">
 </div>
 
-<h3>Itens</h3>
+<h3 style="margin-top:20px;">Itens</h3>
 
 <div id="itens"></div>
 
@@ -344,7 +423,7 @@ function addItem() {
     div.className = "item";
 
     div.innerHTML = `
-        <div class="grid">
+        <div class="grid modern-grid">
 
             <input placeholder="Produto">
 
@@ -461,7 +540,7 @@ async function carregar() {
 
             <b>Cliente:</b> ${pedido.cliente}
 
-            <hr>
+            <hr style="margin:15px 0;">
         `;
 
         pedido.itens.forEach(i => {
@@ -487,9 +566,6 @@ async function carregar() {
 
                 classe = "atrasado";
 
-                alerta +=
-                    `Pedido ${numero} atrasado\n`;
-
             } else if (
                 prev &&
                 prev.toDateString() === hoje.toDateString()
@@ -498,9 +574,6 @@ async function carregar() {
                 status = "⚠ Hoje";
 
                 classe = "hoje";
-
-                alerta +=
-                    `Pedido ${numero} chega hoje\n`;
 
             } else {
 
@@ -558,10 +631,6 @@ async function carregar() {
     document
         .getElementById("lista")
         .innerHTML = html;
-
-    if (alerta) {
-        alert(alerta);
-    }
 }
 
 // CREATE
